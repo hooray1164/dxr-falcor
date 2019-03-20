@@ -16,6 +16,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **********************************************************************************************************************/
 
+#define M_1_PI  0.318309886183790671538
+
 // Some early DXR drivers had a bug breaking atan2() in DXR shaders.  This is a work-around
 float atan2_WAR(float y, float x)
 {

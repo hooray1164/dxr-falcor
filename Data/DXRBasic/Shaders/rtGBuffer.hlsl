@@ -23,6 +23,36 @@ RWTexture2D<float4> gDiffuseCol;
 Texture2D<float4>   gEnvMap;
 SamplerState        gEnvSampler;
 
+// Const buffer for the RayGen shader
+cbuffer RayGenCB
+{
+    float2 gPixelJitter;
+}
+
+[shader("raygeneration")]
+void GBufferRayGen()
+{
+    // Calculate primary ray direction
+    float2 pixelPos = (DispatchRaysIndex().xy + gPixelJitter) / DispatchRaysDimensions().xy;
+    float2 pixelPosNormalized = float2(2, -2) * pixelPos + float2(-1, 1);
+    float3 rayDir = pixelPosNormalized.x * gCamera.cameraU +
+                    pixelPosNormalized.y * gCamera.cameraV +
+                    gCamera.cameraW;
+
+    // Initialize ray description
+    RayDesc ray;
+    ray.Origin = gCamera.posW;
+    ray.Direction = normalize(rayDir);
+    ray.TMin = 0.f;
+    ray.TMax = 1e+38f;
+
+    // Initialize ray payload
+    DummyRayPayload payload = { false };
+
+    // Trace ray
+    TraceRay(gRtScene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, hitProgramCount, 0, ray, payload);
+}
+
 [shader("miss")]
 void PrimaryMiss(inout DummyRayPayload payload)
 {
@@ -42,5 +72,5 @@ void PrimaryClosestHit(inout DummyRayPayload payload, TriAttributes attribs)
     uint2 launchIndex = DispatchRaysIndex().xy;
     gWorldPos[launchIndex] = float4(shadingData.posW, 1.f);
     gWorldNorm[launchIndex] = float4(shadingData.N, length(shadingData.posW - gCamera.posW));
-
+    gDiffuseCol[launchIndex] = float4(shadingData.diffuse, shadingData.opacity);
 }

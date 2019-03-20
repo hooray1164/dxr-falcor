@@ -11,21 +11,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\CommonPasses\CopyToOutputPass.cpp" />
+    <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp" />
+    <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
+    <ClCompile Include="..\SharedUtils\RayLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RenderingPipeline.cpp" />
     <ClCompile Include="..\SharedUtils\RenderPass.cpp" />
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
-    <ClCompile Include="GBufferPass.cpp" />
+    <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
     <ClCompile Include="Passes\ConstantColorPass.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Passes\DiffuseGIPass.cpp" />
+    <ClCompile Include="Passes\GBufferPass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\CommonPasses\CopyToOutputPass.h" />
+    <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h" />
+    <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
+    <ClInclude Include="..\SharedUtils\RayLaunch.h" />
     <ClInclude Include="..\SharedUtils\RenderingPipeline.h" />
     <ClInclude Include="..\SharedUtils\RenderPass.h" />
     <ClInclude Include="..\SharedUtils\ResourceManager.h" />
     <ClInclude Include="..\SharedUtils\SceneLoaderWrapper.h" />
-    <ClInclude Include="GBufferPass.h" />
+    <ClInclude Include="..\SharedUtils\SimpleVars.h" />
     <ClInclude Include="Passes\ConstantColorPass.h" />
+    <ClInclude Include="Passes\DiffuseGIPass.h" />
+    <ClInclude Include="Passes\GBufferPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Falcor\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">
@@ -34,6 +46,14 @@
     <ProjectReference Include="..\Falcor\Framework\Source\Falcor.vcxproj">
       <Project>{3b602f0e-3834-4f73-b97d-7dfc91597a98}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\DXRBasic\Shaders\rtGBuffer.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\DXRBasic\Shaders\rtShaderUtils.hlsli" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6E805FA0-09A3-40ED-B5E0-91C27F36D6A8}</ProjectGuid>

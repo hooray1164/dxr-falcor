@@ -16,6 +16,10 @@ namespace
 	const std::string kRayGen = "DiffuseGIRayGen";
 	const std::string kShadowMiss = "ShadowMiss";
 	const std::string kShadowAnyHit = "ShadowHit";
+
+	const std::string kGIMiss = "GIMiss";
+	const std::string kGIClosestHit = "GIClosestHit";
+	const std::string kGIAnyHit = "GIAnyHit";
 }
 
 
@@ -30,8 +34,13 @@ bool DiffuseGIPass::initialize(RenderContext * pRenderContext, ResourceManager::
 		ResourceManager::kOutputChannel });
 
 	mpRtShader = RayLaunch::create(kRtShaderFile, kRayGen);
+
 	mpRtShader->addMissShader(kRtShaderFile, kShadowMiss);
 	mpRtShader->addHitShader(kRtShaderFile, "", kShadowAnyHit);
+
+	mpRtShader->addMissShader(kRtShaderFile, kGIMiss);
+	mpRtShader->addHitShader(kRtShaderFile, kGIClosestHit, kGIAnyHit);
+
 	mpRtShader->compileRayProgram();
 	if (mpScene) { mpRtShader->setScene(mpScene); }
 
@@ -98,6 +107,22 @@ void DiffuseGIPass::execute(RenderContext * pRenderContext)
 	rayGenVars["gDiffuseCol"] = mpResManager->getTexture(kDiffuseBuffer);
 	rayGenVars["gSpecCol"] = mpResManager->getTexture(kSpecBuffer);
 	rayGenVars["gOutput"] = dstTexture;
+
+	// Pass Environment Map variables to the GI Miss shader
+	auto missVars = mpRtShader->getMissVars(1);
+	missVars["gEnvMap"] = mpResManager->getEnvironmentMap();
+	missVars["gEnvSampler"] = mpLinearSampler;
+
+
+	// Pass mShadowRays to all shaders
+	// auto globalVars = mpRtShader->getGlobalVars();
+	// globalVars["GlobalCB"]["gShadows"] = mShadowRays;
+	// auto hitVars = mpRtShader->getHitVars(1);
+	// hitVars["gShadows"] = mShadowRays;
+	/*for (auto hitVars : mpRtShader->getHitVars(1))
+	{
+		hitVars["gShadows"] = mShadowRays;
+	}*/
 
 	//mpScene->getActiveCamera()->setJitter(xOff / float(wPosTexture->getWidth()), yOff / float(wPosTexture->getHeight()));
 

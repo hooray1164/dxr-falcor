@@ -39,22 +39,22 @@ struct GIRayPayload
     float3 color;
     uint rndSeed;
 };
-float3 GIRayGen(float3 origin, float3 dir, float minT, float maxT);
+float3 GIRayGen(float3 origin, float3 dir, float minT, uint randSeed);
 
 typedef BuiltInTriangleIntersectionAttributes TriAttributes;
 
 // GBuffer textures
-Texture2D<float4> gWorldPos;
-Texture2D<float4> gWorldNorm;
-Texture2D<float4> gDiffuseCol;
-Texture2D<float4> gSpecCol;
+Texture2D<float4>   gWorldPos;
+Texture2D<float4>   gWorldNorm;
+Texture2D<float4>   gDiffuseCol;
+Texture2D<float4>   gSpecCol;
 
 // Output texture
 RWTexture2D<float4> gOutput;
 
 // Environment map texture and sampler
-Texture2D<float4> gEnvMap;
-SamplerState gEnvSampler;
+Texture2D<float4>   gEnvMap;
+SamplerState        gEnvSampler;
 
 // Const buffer for the RayGen shader
 cbuffer RayGenCB
@@ -64,6 +64,12 @@ cbuffer RayGenCB
     bool    gShadows;
     bool    gGI;
 }
+
+// Global const buffer
+//cbuffer GlobalCB
+//{
+//    bool    gShadows;
+//}
 
 [shader("raygeneration")]
 void DiffuseGIRayGen()
@@ -107,38 +113,25 @@ void DiffuseGIRayGen()
         // Shadow ray
         if (gShadows)
         {
-            pixelColor *= (int)ShadowRayGen(worldPos.xyz, dirToLight, gMinT, lightDist);
+            pixelColor *= gLightsCount * (int)ShadowRayGen(worldPos.xyz, dirToLight, gMinT, lightDist);
         }
 
         if (gGI)
         {
-            float3 indirectDir = getCosHemisphereSample(randSeed, worldNorm.xyz);
+            float3 giDir = getCosHemisphereSample(randSeed, worldNorm.xyz);
+            float3 giColor = GIRayGen(worldPos.xyz, giDir, gMinT, randSeed);
 
+            float NdotLGI = saturate(dot(worldNorm.xyz, giDir));
 
+            // Color = Lambertial term / Sample probability
+            //       = (giColor * diffuseCol * NdotL / PI) / (NdotL / PI)
+            //       = giColor * diffuseCol
+            
+            pixelColor += giColor * diffuseCol.rgb;
         }
     }
 
     gOutput[launchIndex] = float4(pixelColor, 1.f);
-
-    //// Calculate primary ray direction
-    //float2 pixelPos = (DispatchRaysIndex().xy + gPixelJitter) / DispatchRaysDimensions().xy;
-    //float2 pixelPosNormalized = float2(2, -2) * pixelPos + float2(-1, 1);
-    //float3 rayDir = pixelPosNormalized.x * gCamera.cameraU +
-    //                pixelPosNormalized.y * gCamera.cameraV +
-    //                gCamera.cameraW;
-
-    //// Initialize ray description
-    //RayDesc ray;
-    //ray.Origin = gCamera.posW;
-    //ray.Direction = normalize(rayDir);
-    //ray.TMin = 0.f;
-    //ray.TMax = 1e+38f;
-
-    //// Initialize ray payload
-    //DummyRayPayload payload = { false };
-
-    //// Trace ray
-    //TraceRay(gRtScene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, hitProgramCount, 0, ray, payload);
 }
 
 
@@ -161,23 +154,63 @@ bool ShadowRayGen(float3 origin, float3 dir, float minT, float maxT)
 void ShadowMiss(inout ShadowRayPayload payload)
 {
     payload.visible = true;
-    // Sample the environment map for Diffuse Color
-    // float2 uv = wsVectorToLatLong(WorldRayDirection());
-    // gDiffuseCol[DispatchRaysIndex().xy] = gEnvMap.SampleLevel(gEnvSampler, uv, 0.f);
 }
 
 [shader("anyhit")]
 void ShadowHit(inout ShadowRayPayload payload, TriAttributes attribs)
 {
     if (alphaTestFails(attribs)) { IgnoreHit(); }
-    //// Helper functions to calculate vertex and shading data
-    //VertexOut vertexData = getVertexAttributes(PrimitiveIndex(), attribs);
-    //ShadingData shadingData = prepareShadingData(vertexData, gMaterial, gCamera.posW, 0);
+}
 
-    //// Save resulting values to GBuffer textures
-    //uint2 launchIndex = DispatchRaysIndex().xy;
-    //gWorldPos[launchIndex] = float4(shadingData.posW, 1.f);
-    //gWorldNorm[launchIndex] = float4(shadingData.N, length(shadingData.posW - gCamera.posW));
-    //gDiffuseCol[launchIndex] = float4(shadingData.diffuse, shadingData.opacity);
-    //gSpecCol[launchIndex] = float4(shadingData.specular, shadingData.linearRoughness);
+
+float3 GIRayGen(float3 origin, float3 dir, float minT, uint randSeed)
+{
+    RayDesc giRay;
+
+    giRay.Origin = origin;
+    giRay.Direction = dir;
+    giRay.TMin = minT;
+    giRay.TMax = 1e+38f;
+
+    GIRayPayload payload = { float3(0.f, 0.f, 0.f), randSeed };
+
+    TraceRay(gRtScene, 0, ~0, 1, hitProgramCount, 1, giRay, payload);
+
+    return payload.color;
+}
+
+[shader("miss")]
+void GIMiss(inout GIRayPayload payload)
+{
+    // Sample the environment map
+    float2 uv = wsVectorToLatLong(WorldRayDirection());
+    payload.color = gEnvMap.SampleLevel(gEnvSampler, uv, 0.f).rgb;
+}
+
+[shader("anyhit")]
+void GIAnyHit(inout GIRayPayload payload, TriAttributes attribs)
+{
+    if (alphaTestFails(attribs)) { IgnoreHit(); }
+}
+
+[shader("closesthit")]
+void GIClosestHit(inout GIRayPayload payload, TriAttributes attribs)
+{
+    // Helper functions to calculate vertex and shading data
+    VertexOut vertexData = getVertexAttributes(PrimitiveIndex(), attribs);
+    ShadingData shadingData = prepareShadingData(vertexData, gMaterial, gCamera.posW, 0);
+
+    int randomLight = min(int(nextRand(payload.rndSeed) * gLightsCount), gLightsCount - 1);
+
+    float lightDist;
+    float3 lightIntensity;
+    float3 dirToLight;
+    getLightData(randomLight, shadingData.posW, dirToLight, lightIntensity, lightDist);
+
+    // Lambertian (diffuse) color
+    float NdotL = saturate(dot(shadingData.N, dirToLight));
+    payload.color = lightIntensity * shadingData.diffuse * NdotL * M_1_PI;
+
+    //if (gShadows)
+    payload.color *= gLightsCount * (int)ShadowRayGen(shadingData.posW, dirToLight, RayTMin(), lightDist);
 }

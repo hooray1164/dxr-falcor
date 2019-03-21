@@ -23,6 +23,11 @@ namespace
 }
 
 
+DiffuseGIPass::DiffuseGIPass(const std::string & outputBuffer)
+	: ::RenderPass("Diffuse GI", "Diffuse GI Options"), mOutputBuffer(outputBuffer)
+{
+}
+
 bool DiffuseGIPass::initialize(RenderContext * pRenderContext, ResourceManager::SharedPtr pResManager)
 {
 	mpResManager = pResManager;
@@ -31,7 +36,7 @@ bool DiffuseGIPass::initialize(RenderContext * pRenderContext, ResourceManager::
 		kDiffuseBuffer,
 		kSpecBuffer,
 		ResourceManager::kEnvironmentMap,
-		ResourceManager::kOutputChannel });
+		mOutputBuffer });
 
 	mpRtShader = RayLaunch::create(kRtShaderFile, kRayGen);
 
@@ -48,11 +53,6 @@ bool DiffuseGIPass::initialize(RenderContext * pRenderContext, ResourceManager::
 	Sampler::Desc desc;
 	desc.setFilterMode(Sampler::Filter::Linear, Sampler::Filter::Linear, Sampler::Filter::Linear).setMaxAnisotropy(8);
 	mpLinearSampler = Sampler::create(desc);
-
-	// Seed the RNG with the current time
-	// auto currentTime = std::chrono::high_resolution_clock::now();
-	// auto timeInMillisec = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
-	// mRng = std::mt19937(uint32_t(timeInMillisec.time_since_epoch().count()));
 
 	return true;
 }
@@ -75,23 +75,9 @@ void DiffuseGIPass::renderGui(Gui * pGui)
 
 void DiffuseGIPass::execute(RenderContext * pRenderContext)
 {
-	auto dstTexture = mpResManager->getClearedTexture(ResourceManager::kOutputChannel, vec4(0.f, 0.f, 0.f, 0.f));
+	auto dstTexture = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.f, 0.f, 0.f, 0.f));
 
 	if (!dstTexture || !mpRtShader || !mpRtShader->readyToRender()) { return; }
-
-	// Pass variables to the Miss shader
-	// auto missVars = mpRtShader->getMissVars(0);
-	// missVars["gDiffuseCol"] = wDiffuseTexture;
-	// missVars["gEnvMap"] = mpResManager->getEnvironmentMap();
-	// missVars["gEnvSampler"] = mpLinearSampler;
-
-	// Pass variables to the Hit shaders for each geometry instance
-	// for (auto hitVars : mpRtShader->getHitVars(0))
-	// {
-	// 	hitVars["gWorldPos"] = wPosTexture;
-	// 	hitVars["gWorldNorm"] = wNormTexture;
-	// 	hitVars["gDiffuseCol"] = wDiffuseTexture;
-	// }
 
 	auto rayGenVars = mpRtShader->getRayGenVars();
 
@@ -112,17 +98,6 @@ void DiffuseGIPass::execute(RenderContext * pRenderContext)
 	auto missVars = mpRtShader->getMissVars(1);
 	missVars["gEnvMap"] = mpResManager->getEnvironmentMap();
 	missVars["gEnvSampler"] = mpLinearSampler;
-
-
-	// Pass mShadowRays to all shaders
-	// auto globalVars = mpRtShader->getGlobalVars();
-	// globalVars["GlobalCB"]["gShadows"] = mShadowRays;
-	// auto hitVars = mpRtShader->getHitVars(1);
-	// hitVars["gShadows"] = mShadowRays;
-	/*for (auto hitVars : mpRtShader->getHitVars(1))
-	{
-		hitVars["gShadows"] = mShadowRays;
-	}*/
 
 	//mpScene->getActiveCamera()->setJitter(xOff / float(wPosTexture->getWidth()), yOff / float(wPosTexture->getHeight()));
 

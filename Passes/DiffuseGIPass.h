@@ -10,11 +10,11 @@ class DiffuseGIPass : public ::RenderPass, inherit_shared_from_this<::RenderPass
 public:
 	using SharedPtr = std::shared_ptr<DiffuseGIPass>;
 	
-	static SharedPtr create() { return SharedPtr(new DiffuseGIPass()); }
+	static SharedPtr create(const std::string& outputBuffer) { return SharedPtr(new DiffuseGIPass(outputBuffer)); }
 	virtual ~DiffuseGIPass() = default;
 
 protected:
-	DiffuseGIPass() : ::RenderPass("Diffuse GI", "Diffuse GI Options") {}
+	DiffuseGIPass(const std::string& outputBuffer); 
 
 	// Implementation of RenderPass interface
 	bool initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) override;
@@ -34,9 +34,8 @@ protected:
 	// Environment Map sampler
 	Sampler::SharedPtr						mpLinearSampler;
 
-	// State for random number generator to calculate pixel jitter
-	// std::uniform_real_distribution<float>	mUniformDist;
-	// std::mt19937							mRng;
+	// Output buffer
+	std::string								mOutputBuffer;
 
 	// Toggles for shadow and GI rays
 	bool									mShadowRays = true;

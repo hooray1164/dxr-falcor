@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Passes\ConstantColorPass.h">
-      <Filter>Passes</Filter>
-    </ClInclude>
     <ClInclude Include="..\SharedUtils\RenderingPipeline.h">
       <Filter>SharedUtils</Filter>
     </ClInclude>
@@ -39,9 +36,6 @@
     <ClInclude Include="..\SharedUtils\SimpleVars.h">
       <Filter>SharedUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\CommonPasses\CopyToOutputPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
     <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h">
       <Filter>CommonPasses</Filter>
     </ClInclude>
@@ -51,11 +45,11 @@
     <ClInclude Include="Passes\DiffuseGIPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
+    <ClInclude Include="..\CommonPasses\SimpleToneMappingPass.h">
+      <Filter>CommonPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Passes\ConstantColorPass.cpp">
-      <Filter>Passes</Filter>
-    </ClCompile>
     <ClCompile Include="..\SharedUtils\RenderingPipeline.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
@@ -78,9 +72,6 @@
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
-    <ClCompile Include="..\CommonPasses\CopyToOutputPass.cpp">
-      <Filter>CommonPasses</Filter>
-    </ClCompile>
     <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp">
       <Filter>CommonPasses</Filter>
     </ClCompile>
@@ -90,6 +81,9 @@
     <ClCompile Include="Passes\DiffuseGIPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
+    <ClCompile Include="..\CommonPasses\SimpleToneMappingPass.cpp">
+      <Filter>CommonPasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\DXRBasic\Shaders\rtShaderUtils.hlsli">
@@ -98,10 +92,6 @@
     <None Include="Data\DXRBasic\Shaders\rtGBuffer.hlsl">
       <Filter>Shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Data\DXRBasic\Shaders\rtDiffuseGI.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <None Include="Data\DXRBasic\Shaders\rtDiffuseGI.hlsl" />
   </ItemGroup>
 </Project>

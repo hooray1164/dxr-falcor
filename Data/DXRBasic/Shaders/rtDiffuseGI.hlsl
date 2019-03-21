@@ -65,11 +65,6 @@ cbuffer RayGenCB
     bool    gGI;
 }
 
-// Global const buffer
-//cbuffer GlobalCB
-//{
-//    bool    gShadows;
-//}
 
 [shader("raygeneration")]
 void DiffuseGIRayGen()

@@ -28,22 +28,28 @@
 #include "Passes/GBufferPass.h"
 #include "Passes/DiffuseGIPass.h"
 #include "../CommonPasses/SimpleAccumulationPass.h"
+#include "../CommonPasses/SimpleToneMappingPass.h"
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
+	std::string HDROutputBuffer = "HDROutputBuffer";
+
 	// Create our rendering pipeline
 	RenderingPipeline *pipeline = new RenderingPipeline();
 
 	// Add passes into our pipeline
 	pipeline->setPass(0, GBufferPass::create());
-	pipeline->setPass(1, DiffuseGIPass::create());
+	pipeline->setPass(1, DiffuseGIPass::create(ResourceManager::kOutputChannel));
 	pipeline->setPass(2, SimpleAccumulationPass::create(ResourceManager::kOutputChannel));
+	//pipeline->setPass(1, DiffuseGIPass::create(HDROutputBuffer));
+	//pipeline->setPass(2, SimpleAccumulationPass::create(HDROutputBuffer));
+	//pipeline->setPass(3, SimpleToneMappingPass::create(HDROutputBuffer, ResourceManager::kOutputChannel));
 
 	// Define a set of config / window parameters for our program
     SampleConfig config;
     config.windowDesc.title = "Basic DXR Application";
     config.windowDesc.resizableWindow = true;
-	//config.windowDesc.fullScreen = true;
+	config.windowDesc.fullScreen = true;
 
 	// Start our program!
 	RenderingPipeline::run(pipeline, config);

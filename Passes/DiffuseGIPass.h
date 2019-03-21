@@ -5,16 +5,16 @@
 #include <random>
 
 
-class GBufferPass : public ::RenderPass, inherit_shared_from_this<::RenderPass, GBufferPass>
+class DiffuseGIPass : public ::RenderPass, inherit_shared_from_this<::RenderPass, DiffuseGIPass>
 {
 public:
-	using SharedPtr = std::shared_ptr<GBufferPass>;
+	using SharedPtr = std::shared_ptr<DiffuseGIPass>;
 	
-	static SharedPtr create() { return SharedPtr(new GBufferPass()); }
-	virtual ~GBufferPass() = default;
+	static SharedPtr create() { return SharedPtr(new DiffuseGIPass()); }
+	virtual ~DiffuseGIPass() = default;
 
 protected:
-	GBufferPass() : ::RenderPass("Ray Traced G-Buffer", "G-Buffer Options") {}
+	DiffuseGIPass() : ::RenderPass("Diffuse GI", "Diffuse GI Options") {}
 
 	// Implementation of RenderPass interface
 	bool initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) override;
@@ -35,6 +35,13 @@ protected:
 	Sampler::SharedPtr						mpLinearSampler;
 
 	// State for random number generator to calculate pixel jitter
-	std::uniform_real_distribution<float>	mUniformDist;
-	std::mt19937							mRng;
+	// std::uniform_real_distribution<float>	mUniformDist;
+	// std::mt19937							mRng;
+
+	// Toggles for shadow and GI rays
+	bool									mShadowRays = true;
+	bool									mGIRays = true;
+
+	// Frame count to seed the RNG for shadow and GI rays
+	uint32_t								mFrameCount = 0xdeadbeef;
 };

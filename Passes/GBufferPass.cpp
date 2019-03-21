@@ -11,24 +11,26 @@ namespace
 	const std::string kWPositionBuffer = "WorldPosition";
 	const std::string kWNormalBuffer = "WorldNormal";
 	const std::string kDiffuseBuffer = "DiffuseColor";
+	const std::string kSpecBuffer = "SpecColor";
 
 	const std::string kPrimaryRayGen = "GBufferRayGen";
 	const std::string kPrimaryMiss = "PrimaryMiss";
 	const std::string kPrimaryClosestHit = "PrimaryClosestHit";
+	const std::string kPrimaryAnyHit = "PrimaryAnyHit";
 }
 
 
 bool GBufferPass::initialize(RenderContext * pRenderContext, ResourceManager::SharedPtr pResManager)
 {
 	mpResManager = pResManager;
-	mpResManager->requestTextureResources({ kWPositionBuffer, kWNormalBuffer, kDiffuseBuffer });
+	mpResManager->requestTextureResources({ kWPositionBuffer, kWNormalBuffer, kDiffuseBuffer, kSpecBuffer });
 
 	mpResManager->updateEnvironmentMap(kEnvironmentMapFile);
 	mpResManager->setDefaultSceneName(kSceneFile);
 
 	mpRtShader = RayLaunch::create(kRtShaderFile, kPrimaryRayGen);
 	mpRtShader->addMissShader(kRtShaderFile, kPrimaryMiss);
-	mpRtShader->addHitShader(kRtShaderFile, kPrimaryClosestHit, "");
+	mpRtShader->addHitShader(kRtShaderFile, kPrimaryClosestHit, kPrimaryAnyHit);
 	mpRtShader->compileRayProgram();
 	if (mpScene) { mpRtShader->setScene(mpScene); }
 
@@ -59,24 +61,25 @@ void GBufferPass::execute(RenderContext * pRenderContext)
 {
 	if (!mpRtShader || !mpRtShader->readyToRender()) { return; }
 
-	auto blackRGB = vec4(1.f, 0.f, 0.f, 0.f);
+	auto blackRGB = vec4(0.f, 0.f, 0.f, 0.f);
 
-	auto wPosTexture = mpResManager->getClearedTexture(kWPositionBuffer, blackRGB);
-	auto wNormTexture = mpResManager->getClearedTexture(kWNormalBuffer, blackRGB);
-	auto wDiffuseTexture = mpResManager->getClearedTexture(kDiffuseBuffer, blackRGB);
+	//auto wPosTexture = mpResManager->getClearedTexture(kWPositionBuffer, blackRGB);
+	//auto wNormTexture = mpResManager->getClearedTexture(kWNormalBuffer, blackRGB);
+	auto diffuseTexture = mpResManager->getClearedTexture(kDiffuseBuffer, blackRGB);
 
 	// Pass variables to the Miss shader
 	auto missVars = mpRtShader->getMissVars(0);
-	missVars["gDiffuseCol"] = wDiffuseTexture;
+	missVars["gDiffuseCol"] = diffuseTexture;
 	missVars["gEnvMap"] = mpResManager->getEnvironmentMap();
 	missVars["gEnvSampler"] = mpLinearSampler;
 
 	// Pass variables to the Hit shaders for each geometry instance
 	for (auto hitVars : mpRtShader->getHitVars(0))
 	{
-		hitVars["gWorldPos"] = wPosTexture;
-		hitVars["gWorldNorm"] = wNormTexture;
-		hitVars["gDiffuseCol"] = wDiffuseTexture;
+		hitVars["gWorldPos"] = mpResManager->getClearedTexture(kWPositionBuffer, blackRGB);
+		hitVars["gWorldNorm"] = mpResManager->getClearedTexture(kWNormalBuffer, blackRGB);
+		hitVars["gDiffuseCol"] = diffuseTexture;
+		hitVars["gSpecCol"] = mpResManager->getClearedTexture(kSpecBuffer, blackRGB);
 	}
 
 	float xOff, yOff;

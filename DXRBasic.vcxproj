@@ -55,6 +55,9 @@
   <ItemGroup>
     <None Include="Data\DXRBasic\Shaders\rtShaderUtils.hlsli" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\DXRBasic\Shaders\rtDiffuseGI.hlsl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6E805FA0-09A3-40ED-B5E0-91C27F36D6A8}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

@@ -26,7 +26,7 @@
 #include "Falcor.h"
 #include "../SharedUtils/RenderingPipeline.h"
 #include "Passes/GBufferPass.h"
-#include "../CommonPasses/CopyToOutputPass.h"
+#include "Passes/DiffuseGIPass.h"
 #include "../CommonPasses/SimpleAccumulationPass.h"
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
@@ -36,7 +36,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	// Add passes into our pipeline
 	pipeline->setPass(0, GBufferPass::create());
-	pipeline->setPass(1, CopyToOutputPass::create());
+	pipeline->setPass(1, DiffuseGIPass::create());
 	pipeline->setPass(2, SimpleAccumulationPass::create(ResourceManager::kOutputChannel));
 
 	// Define a set of config / window parameters for our program

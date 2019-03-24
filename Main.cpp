@@ -39,11 +39,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	// Add passes into our pipeline
 	pipeline->setPass(0, GBufferPass::create());
-	pipeline->setPass(1, DiffuseGIPass::create(ResourceManager::kOutputChannel));
-	pipeline->setPass(2, SimpleAccumulationPass::create(ResourceManager::kOutputChannel));
-	//pipeline->setPass(1, DiffuseGIPass::create(HDROutputBuffer));
-	//pipeline->setPass(2, SimpleAccumulationPass::create(HDROutputBuffer));
-	//pipeline->setPass(3, SimpleToneMappingPass::create(HDROutputBuffer, ResourceManager::kOutputChannel));
+	//pipeline->setPass(1, DiffuseGIPass::create(ResourceManager::kOutputChannel));
+	//pipeline->setPass(2, SimpleAccumulationPass::create(ResourceManager::kOutputChannel));
+	pipeline->setPass(1, DiffuseGIPass::create(HDROutputBuffer));
+	pipeline->setPass(2, SimpleAccumulationPass::create(HDROutputBuffer));
+	pipeline->setPass(3, SimpleToneMappingPass::create(HDROutputBuffer, ResourceManager::kOutputChannel));
 
 	// Define a set of config / window parameters for our program
     SampleConfig config;

@@ -207,5 +207,5 @@ void GIClosestHit(inout GIRayPayload payload, TriAttributes attribs)
     payload.color = lightIntensity * shadingData.diffuse * NdotL * M_1_PI;
 
     //if (gShadows)
-    payload.color *= gLightsCount * (int)ShadowRayGen(shadingData.posW, dirToLight, RayTMin(), lightDist);
+    payload.color *= gLightsCount * (int) ShadowRayGen(shadingData.posW, dirToLight, RayTMin(), lightDist);
 }
